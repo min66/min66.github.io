@@ -61,6 +61,1099 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-mresume-master/js/mresume" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/21/mresume-master/js/mresume/" class="article-date">
+  <time datetime="2016-10-21T11:28:03.045Z" itemprop="datePublished">2016-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        var width = window.innerWidth;
+var height = window.innerHeight;
+
+
+//构造函数
+function Resume(opts){
+  //构造函数需要的参数
+  this.outer = opts.outer;
+
+  //构造三步奏
+  this.init();
+  this.renderDOM();
+  this.bindDOM();
+}
+
+//第一步 -- 初始化
+Resume.prototype.init = function() {
+  this.divs = this.outer.getElementsByTagName('li');
+  this.len = this.divs.length;
+
+  //设定初始的索引值
+  this.idx = 0;
+};
+
+//第二步 -- 渲染DOM
+Resume.prototype.renderDOM = function() {
+  for (var i = 0; i < this.len; i++) {
+    this.divs[i].style.height = height;
+    this.divs[i].style.webkitTransform = 'translate3d(0px, '+ (i)*height +'px, 0px)';
+  }
+};
+
+//第三步 -- 绑定 DOM 事件
+Resume.prototype.bindDOM = function(){
+  var self = this;
+  var scaleW = height;
+  var outer = self.outer;
+  var len = self.len;
+
+  //手指按下的处理事件
+  var startHandler = function(evt){
+
+    //记录刚刚开始按下的时间
+    self.startTime = new Date() * 1;
+
+    //记录手指按下的坐标
+    self.startY = evt.touches[0].pageY;
+
+    //清除偏移量
+    self.offsetY = 0;
+
+    //事件对象
+    var target = evt.target;
+    while(target.nodeName != 'LI' && target.nodeName != 'BODY'){
+      target = target.parentNode;
+    }
+    self.target = target;
+
+  };
+
+  //手指移动的处理事件
+  var moveHandler = function(evt){
+    //兼容chrome android，阻止浏览器默认行为
+    evt.preventDefault();
+
+    //计算手指的偏移量
+    self.offsetY = evt.touches[0].pageY - self.startY;
+
+    var lis = outer.getElementsByTagName('li');
+    //起始索引
+    var i = self.idx - 1;
+    //结束索引
+    var m = i + 3;
+
+    //最小化改变DOM属性
+    for(i; i < m; i++){
+      lis[i] && (lis[i].style.webkitTransition = '-webkit-transform 0s ease-out');
+      lis[i] && (lis[i].style.webkitTransform = 'translate3d(0, '+ ((i-self.idx)*height + self.offsetY) +'px, 0)');
+    }
+  };
+
+  //手指抬起的处理事件
+  var endHandler = function(evt){
+    evt.preventDefault();
+
+    //边界就翻页值
+    var boundary = height/6;
+
+    //手指抬起的时间值
+    var endTime = new Date() * 1;
+
+    //所有列表项
+    var lis = outer.getElementsByTagName('li');
+
+    //当手指移动时间超过300ms 的时候，按位移算
+    if(endTime - self.startTime > 300){
+      if(self.offsetY >= boundary){
+        //进入上一页
+        self.goIndex('-1');
+        AddAnimation(self.idx);
+      }else if(self.offsetY < 0 && self.offsetY < -boundary){
+        //进入下一页
+        self.goIndex('+1');
+        AddAnimation(self.idx);
+      }else{
+        self.goIndex('0');
+      }
+    }else{
+      //优化
+      //快速移动也能使得翻页
+      if(self.offsetY > 50){
+        self.goIndex('-1');
+        AddAnimation(self.idx);
+      }else if(self.offsetY < -50){
+        self.goIndex('+1');
+        AddAnimation(self.idx);
+      }else{
+        self.goIndex('0');
+      }
+    }
+  };
+
+  //绑定事件
+  outer.addEventListener('touchstart', startHandler);
+  outer.addEventListener('touchmove', moveHandler);
+  outer.addEventListener('touchend', endHandler);
+}
+
+Resume.prototype.goIndex = function(n){
+  var idx = this.idx;
+  var lis = this.outer.getElementsByTagName('li');
+  var len = lis.length;
+  var cidx;
+
+  //如果传数字 2,3 之类可以使得直接滑动到该索引
+  if(typeof n == 'number'){
+    cidx = idx;
+  //如果是传字符则为索引的变化
+  }else if(typeof n == 'string'){
+    cidx = idx + n*1;
+  }
+
+
+  //当索引右超出
+  if(cidx > len-1){
+    cidx = len - 1;
+  //当索引左超出  
+  }else if(cidx < 0){
+    cidx = 0;
+  }
+
+  //保留当前索引值
+  this.idx = cidx;
+
+  //改变过渡的方式，从无动画变为有动画
+  lis[cidx].style.webkitTransition = '-webkit-transform 0.2s ease-out';
+  lis[cidx-1] && (lis[cidx-1].style.webkitTransition = '-webkit-transform 0.2s ease-out');
+  lis[cidx+1] && (lis[cidx+1].style.webkitTransition = '-webkit-transform 0.2s ease-out');
+
+  //改变动画后所应该的位移值
+  lis[cidx].style.webkitTransform = 'translate3d(0, 0, 0)';
+  lis[cidx-1] && (lis[cidx-1].style.webkitTransform = 'translate3d(0, -'+ height +'px, 0)');
+  lis[cidx+1] && (lis[cidx+1].style.webkitTransform = 'translate3d(0, '+ height +'px, 0)');
+};
+
+
+
+//初始化Resume 实例
+new Resume({
+  outer : document.getElementById('outer')
+});
+
+
+//About Me 页面，根据屏幕大小调整间距
+var aboutme_detail = document.getElementById('aboutme-detail');
+var aboutme_tds = document.getElementById('aboutme-detail').getElementsByTagName('td'); //要调整的元素
+var h_aboutme_title = document.getElementById('aboutme-title').offsetHeight;
+var h_aboutme_detail_head = aboutme_detail.getElementsByTagName('p')[0].offsetHeight;
+var h_aboutme_detail_table = aboutme_detail.getElementsByTagName('table')[0].offsetHeight;
+var len = aboutme_tds.length;
+var td_padding = Math.floor((height - h_aboutme_title - h_aboutme_detail_head - h_aboutme_detail_table) / 20);
+
+for (var i=0; i < len; i++) {
+  aboutme_tds[i].style.paddingTop = td_padding + 'px';
+  aboutme_tds[i].style.paddingBottom = td_padding + 'px';
+}
+
+//教育经历页面，根据屏幕大小调整位置
+var education_detail = document.getElementById('education-detail');
+var h_education_title = document.getElementById('education-title').offsetHeight;
+education_detail.style.paddingTop = (window.innerHeight - h_education_title - education_detail.offsetHeight) / 2 + 'px';
+
+
+//专业技能页面
+var ability_detail_canvas = document.getElementById('ability-detail').getElementsByTagName('canvas');
+var h_ability_title = document.getElementById('ability-title').offsetHeight;
+var h_ability_detail_canvas = (height - h_ability_title) / 9;
+
+var len = ability_detail_canvas.length;
+for (var i = 0; i < len; i++) {
+  ability_detail_canvas[i].width = width - document.getElementById('canvas-td').offsetWidth - 40;
+  ability_detail_canvas[i].height = h_ability_detail_canvas;
+};
+
+function drawAbility(mycanvas, value, color) {
+  var canvas = document.getElementById(mycanvas);
+  var ctx = canvas.getContext('2d');
+
+  // console.log(canvas.offsetWidth);
+  var RectW = Math.floor(value / 100 * canvas.offsetWidth);
+
+  ctx.fillStyle = color;
+  ctx.fillRect(0,14,RectW,h_ability_detail_canvas / 2 - 5);
+}
+
+drawAbility('canvas-php', 60, '#5c9beb');
+
+drawAbility('canvas-mysql', 50, '#eb86c0');
+
+drawAbility('canvas-html', 60, '#ec5463');
+
+drawAbility('canvas-js', 40, '#e5e8ed');
+
+drawAbility('canvas-mvc', 60, '#9fd367');
+
+drawAbility('canvas-linux', 50, '#fecd54');
+
+drawAbility('canvas-ds', 60, '#f69292');
+
+drawAbility('canvas-cpp', 70, '#e1a34e');
+
+//项目经验页面
+// var experience_detail = document.getElementById('experience-detail');
+// var h_experience_title = document.getElementById('experience-title').offsetHeight;
+// experience_detail.style.paddingTop = (window.innerHeight - h_experience_title - experience_detail.offsetHeight) / 2 + 'px';
+
+
+// console.log(document.getElementById('aboutme-detail').style.top);
+// console.log(document.getElementById('aboutme-detail').left);
+
+
+//动画效果
+function AddAnimation(index){
+  switch (index) {
+    case 0:
+      AnimationPage0();
+      break;
+    case 1:
+      AnimationPage1();
+      break;
+    case 2:
+      AnimationPage2();
+      break;
+    case 3:
+      AnimationPage3();
+      break;
+    case 4:
+      AnimationPage4();
+      break;
+    default:
+      AnimationPage0();
+  }
+}
+//第一页动画 - 封面
+function AnimationPage0() {
+  if (document.getElementById('cover-img').style.webkitAnimation == 'ani-cover-img 1s') {
+    document.getElementById('cover-img').style.webkitAnimation = 'ani-cover-img2 1s';
+    document.getElementById('cover-title').style.webkitAnimation = 'ani-cover-title2 1s';
+    document.getElementById('cover-title').style.webkitAnimation = 'ani-cover-title2 1s';
+    document.getElementById('cover-subtitle').style.webkitAnimation = 'ani-cover-subtitle2 1s';
+  } else {
+    document.getElementById('cover-img').style.webkitAnimation = 'ani-cover-img 1s';
+    document.getElementById('cover-title').style.webkitAnimation = 'ani-cover-title 1s';
+    document.getElementById('cover-subtitle').style.webkitAnimation = 'ani-cover-subtitle 1s';
+  }
+}
+//第二页动画 - 关于
+function AnimationPage1() {
+  if (document.getElementById('aboutme-title-cn').style.webkitAnimation == 'ani-page-title-cn 1s') {
+    document.getElementById('aboutme-title-cn').style.webkitAnimation = 'ani-page-title-cn2 1s';
+    document.getElementById('aboutme-title-en').style.webkitAnimation = 'ani-page-title-en2 1s';
+    document.getElementById('aboutme-detail').style.webkitAnimation = 'ani-page-detail2 1s';
+  } else {
+    document.getElementById('aboutme-title-cn').style.webkitAnimation = 'ani-page-title-cn 1s';
+    document.getElementById('aboutme-title-en').style.webkitAnimation = 'ani-page-title-en 1s';
+    document.getElementById('aboutme-detail').style.webkitAnimation = 'ani-page-detail 1s';
+  }
+}
+//第三页动画 - 教育经历
+function AnimationPage2() {
+  if (document.getElementById('education-title-cn').style.webkitAnimation == 'ani-page-title-cn 1s') {
+    document.getElementById('education-title-cn').style.webkitAnimation = 'ani-page-title-cn2 1s';
+    document.getElementById('education-title-en').style.webkitAnimation = 'ani-page-title-en2 1s';
+    document.getElementById('education-text1').style.webkitAnimation = 'ani-education-detail2 1s';
+    document.getElementById('education-text2').style.webkitAnimation = 'ani-education-detail-dx2 1.8s';
+    document.getElementById('education-text3').style.webkitAnimation = 'ani-education-detail-yjs2 2.5s';
+    document.getElementById('education-img1').style.webkitAnimation = 'ani-education-detail2 1s';
+    document.getElementById('education-img2').style.webkitAnimation = 'ani-education-detail-dx2 1.8s';
+    document.getElementById('education-img3').style.webkitAnimation = 'ani-education-detail2-yjs2 2.5s';
+  } else {
+    document.getElementById('education-title-cn').style.webkitAnimation = 'ani-page-title-cn 1s';
+    document.getElementById('education-title-en').style.webkitAnimation = 'ani-page-title-en 1s';
+    document.getElementById('education-text1').style.webkitAnimation = 'ani-education-detail 1s';
+    document.getElementById('education-text2').style.webkitAnimation = 'ani-education-detail-dx 1.8s';
+    document.getElementById('education-text3').style.webkitAnimation = 'ani-education-detail-yjs 2.5s';
+    document.getElementById('education-img1').style.webkitAnimation = 'ani-education-detail 1s';
+    document.getElementById('education-img2').style.webkitAnimation = 'ani-education-detail-dx 1.8s';
+    document.getElementById('education-img3').style.webkitAnimation = 'ani-education-detail-yjs 2.5s';
+  }
+}
+//第四页动画 - 专业技能
+function AnimationPage3() {
+  if (document.getElementById('ability-title-cn').style.webkitAnimation == 'ani-page-title-cn 1s') {
+    document.getElementById('ability-title-cn').style.webkitAnimation = 'ani-page-title-cn2 1s';
+    document.getElementById('ability-title-en').style.webkitAnimation = 'ani-page-title-en2 1s';
+    document.getElementById('canvas-php').style.webkitAnimation = 'ani-ability-canvasphp2 0.8s';
+    document.getElementById('canvas-mysql').style.webkitAnimation = 'ani-ability-canvasmysql2 1.2s';
+    document.getElementById('canvas-html').style.webkitAnimation = 'ani-ability-canvashtml2 1.5s';
+    document.getElementById('canvas-js').style.webkitAnimation = 'ani-ability-canvasjs2 1.8s';
+    document.getElementById('canvas-mvc').style.webkitAnimation = 'ani-ability-canvasmvc2 2.1s';
+    document.getElementById('canvas-linux').style.webkitAnimation = 'ani-ability-canvaslinux2 2.4s';
+    document.getElementById('canvas-ds').style.webkitAnimation = 'ani-ability-canvasds2 2.7s';
+    document.getElementById('canvas-cpp').style.webkitAnimation = 'ani-ability-canvascpp2 3s';
+  } else {
+    document.getElementById('ability-title-cn').style.webkitAnimation = 'ani-page-title-cn 1s';
+    document.getElementById('ability-title-en').style.webkitAnimation = 'ani-page-title-en 1s';
+    document.getElementById('canvas-php').style.webkitAnimation = 'ani-ability-canvasphp 0.8s';
+    document.getElementById('canvas-mysql').style.webkitAnimation = 'ani-ability-canvasmysql 1.2s';
+    document.getElementById('canvas-html').style.webkitAnimation = 'ani-ability-canvashtml 1.5s';
+    document.getElementById('canvas-js').style.webkitAnimation = 'ani-ability-canvasjs 1.8s';
+    document.getElementById('canvas-mvc').style.webkitAnimation = 'ani-ability-canvasmvc 2.1s';
+    document.getElementById('canvas-linux').style.webkitAnimation = 'ani-ability-canvaslinux 2.4s';
+    document.getElementById('canvas-ds').style.webkitAnimation = 'ani-ability-canvasds 2.7s';
+    document.getElementById('canvas-cpp').style.webkitAnimation = 'ani-ability-canvascpp 3s';
+  }
+}
+//第五页动画 - 专业技能
+function AnimationPage4() {
+  if (document.getElementById('experience-title-cn').style.webkitAnimation == 'ani-page-title-cn 1s') {
+    document.getElementById('experience-title-cn').style.webkitAnimation = 'ani-page-title-cn2 1s';
+    document.getElementById('experience-title-en').style.webkitAnimation = 'ani-page-title-en2 1s';
+    document.getElementById('experience-detail').style.webkitAnimation = 'ani-page-detail2 1s';
+  } else {
+    document.getElementById('experience-title-cn').style.webkitAnimation = 'ani-page-title-cn 1s';
+    document.getElementById('experience-title-en').style.webkitAnimation = 'ani-page-title-en 1s';
+    document.getElementById('experience-detail').style.webkitAnimation = 'ani-page-detail 1s';
+  }
+}
+
+AddAnimation(0);
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/js/mresume/" data-id="ciujp1qn40007rcu70gsbzyze" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-mresume-master/css/style" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/21/mresume-master/css/style/" class="article-date">
+  <time datetime="2016-10-21T11:28:02.907Z" itemprop="datePublished">2016-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        body {
+  font-family: 微软雅黑, Arial, Helvetica, sans-serif;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+  font-size: 62.5%;
+}
+li,ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
+}
+li{
+  position: absolute;
+/*  display: -webkit-box;
+  -webkit-box-pack: center;
+  -webkit-box-align: center;*/
+  -webkit-backface-visibility: hidden;
+}
+#warp{
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+
+.cover {
+  text-align: center;
+  background-color:#284e61;
+}
+.cover > img {
+  width: 55%;
+  max-width: 600px;
+  border:5 solid #fff;
+  -webkit-border-radius: 50%;
+  margin-top:30%;
+}
+.cover > div {
+  position: absolute;
+  width: 100%;
+  bottom: 10%;
+}
+.cover > div > #cover-title {
+  font-weight: bold;
+  font-size: 36px;
+  color: #23a3d3;
+  margin: 0;
+}
+.cover > div > #cover-subtitle {
+  font-size: 24px;
+  color: #888888;
+  margin: 0;
+}
+
+
+.page {
+  background-color:#656d78;
+  text-align: left;
+  padding: 0;
+  color: #cbcbcb;
+}
+.page > .page-title {
+  background-color:#424953;
+  padding: 10px 15px;
+}
+.page > .page-title > h2 {
+  font-size:24px;
+  line-height: 36px;
+  margin: 0;
+}
+.page > .page-title > h2.CN {
+  color: #22a2d2;
+}
+.page > .page-detail {
+  padding-left: 15px;
+  font-size: 14px;
+}
+.page > .page-detail > .page-detail-head {
+  line-height: 45px;
+  margin: 0;
+}
+.page > .page-detail > .page-detail-head > span:first-child {
+  color: #fefefe;
+  font-size: 16px;
+  font-weight: 600;
+}
+.page > .page-detail > .page-detail-head > span:last-child {
+  color: #eb7b7b;
+}
+.page > .page-detail > table {
+  font-size: 14px;
+  color: #cbcbcb;
+  margin-left: -3px;
+}
+.page > .page-detail > table tr td {
+  vertical-align: top;
+}
+.page > .page-detail > table tr td:first-child {
+  width: 64px;
+  color: #fefefe;
+}
+.page > .page-detail > table tr td:first-child span {
+  background-color: #92989f;
+  padding: 0 3px;
+}
+
+
+
+.one-third {
+  width: 32%;
+  display: inline-block;
+  text-align: center;
+}
+
+.one-third img {
+  width: 80%;
+}
+.one-third.text {
+  vertical-align: top;
+}
+.one-third.text > .text-title {
+  color: #22a2d2;
+  padding: 6px 0;
+}
+.one-third.text > .text-time {
+  padding: 6px 0;
+}
+
+
+.canvas-ability{
+  /*width: 100%;*/
+  -webkit-transition: width 2s linear 1s;
+}
+#ability-detail tr > td:first-child {
+  vertical-align: middle;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.project {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.project > .project-title {
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-weight: bold;
+  font-size: 16px;
+}
+.project > .project-detail > div {
+  padding-bottom: 8px;
+}
+
+
+@-webkit-keyframes ani-cover-img
+{
+  from   { -webkit-transform: scale(0.2);}
+  to {-webkit-transform: scale(1);}
+}
+@-webkit-keyframes ani-cover-img2
+{
+  from   { -webkit-transform: scale(0.2);}
+  to {-webkit-transform: scale(1);}
+}
+@-webkit-keyframes ani-cover-title
+{
+  from   { -webkit-transform: translate(0,-40px);}
+  to {-webkit-transform: translate(0,0);}
+}
+@-webkit-keyframes ani-cover-title2
+{
+  from   { -webkit-transform: translate(0,-40px);}
+  to {-webkit-transform: translate(0,0);}
+}
+@-webkit-keyframes ani-cover-subtitle
+{
+  from   { -webkit-transform: translate(0,40px);}
+  to {-webkit-transform: translate(0,0);}
+}
+@-webkit-keyframes ani-cover-subtitle2
+{
+  from   { -webkit-transform: translate(0,40px);}
+  to {-webkit-transform: translate(0,0);}
+}
+
+@-webkit-keyframes ani-page-title-cn
+{
+  0% { -webkit-transform: translate(-20px,0);}
+  10% { -webkit-transform: translate(20px,0);}
+  20% {-webkit-transform: translate(-16px,0);}
+  30% {-webkit-transform: translate(16px,0);}
+  40% {-webkit-transform: translate(-12px,0);}
+  50% {-webkit-transform: translate(12px,0);}
+  60% { -webkit-transform: translate(-8px,0);}
+  70% {-webkit-transform: translate(8px,0);}
+/*  80% {-webkit-transform: translate(-4px,0);}
+  90% {-webkit-transform: translate(4px,0);}*/
+  100% {-webkit-transform: translate(0,0);}
+}
+@-webkit-keyframes ani-page-title-cn2
+{
+  0% { -webkit-transform: translate(-20px,0);}
+  10% { -webkit-transform: translate(20px,0);}
+  20% {-webkit-transform: translate(-16px,0);}
+  30% {-webkit-transform: translate(16px,0);}
+  40% {-webkit-transform: translate(-12px,0);}
+  50% {-webkit-transform: translate(12px,0);}
+  60% { -webkit-transform: translate(-8px,0);}
+  70% {-webkit-transform: translate(8px,0);}
+/*  80% {-webkit-transform: translate(-4px,0);}
+  90% {-webkit-transform: translate(4px,0);}*/
+  100% {-webkit-transform: translate(0,0);}
+}
+
+@-webkit-keyframes ani-page-title-en
+{
+  0% { -webkit-transform: translate(20px,0);}
+  10% { -webkit-transform: translate(-20px,0);}
+  20% {-webkit-transform: translate(16px,0);}
+  30% {-webkit-transform: translate(-16px,0);}
+  40% {-webkit-transform: translate(12px,0);}
+  50% {-webkit-transform: translate(-12px,0);}
+  60% { -webkit-transform: translate(8px,0);}
+  70% {-webkit-transform: translate(-8px,0);}
+/*  80% {-webkit-transform: translate(4px,0);}
+  90% {-webkit-transform: translate(-4px,0);}*/
+  100% {-webkit-transform: translate(0,0);}
+}
+@-webkit-keyframes ani-page-title-en2
+{
+  0% { -webkit-transform: translate(20px,0);}
+  10% { -webkit-transform: translate(-20px,0);}
+  20% {-webkit-transform: translate(16px,0);}
+  30% {-webkit-transform: translate(-16px,0);}
+  40% {-webkit-transform: translate(12px,0);}
+  50% {-webkit-transform: translate(-12px,0);}
+  60% { -webkit-transform: translate(8px,0);}
+  70% {-webkit-transform: translate(-8px,0);}
+/*  80% {-webkit-transform: translate(4px,0);}
+  90% {-webkit-transform: translate(-4px,0);}*/
+  100% {-webkit-transform: translate(0,0);}
+}
+
+@-webkit-keyframes ani-page-detail
+{
+  from {-webkit-transform: translate(0, 720px)}
+  to {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-page-detail2
+{
+  from {-webkit-transform: translate(0, 720px)}
+  to {-webkit-transform: translate(0, 0)}
+}
+
+@-webkit-keyframes ani-education-detail
+{
+  from {-webkit-transform: translate(0, 720px)}
+  to {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-education-detail2
+{
+  from {-webkit-transform: translate(0, 720px)}
+  to {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-education-detail-dx
+{
+  0% {-webkit-transform: translate(0, 720px)}
+  30% {-webkit-transform: translate(0, 720px)}
+  100% {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-education-detail-dx2
+{
+  0% {-webkit-transform: translate(0, 720px)}
+  30% {-webkit-transform: translate(0, 720px)}
+  100% {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-education-detail-yjs
+{
+  0% {-webkit-transform: translate(0, 720px)}
+  30% {-webkit-transform: translate(0, 720px)}
+  100% {-webkit-transform: translate(0, 0)}
+}
+@-webkit-keyframes ani-education-detail-yjs2
+{
+  0% {-webkit-transform: translate(0, 720px)}
+  60% {-webkit-transform: translate(0, 720px)}
+  100% {-webkit-transform: translate(0, 0)}
+}
+
+@-webkit-keyframes ani-ability-detail
+{
+  from {-webkit-transform: scale(0.5)}
+  to {-webkit-transform: scale(1)}
+}
+@-webkit-keyframes ani-ability-detail2
+{
+  from {-webkit-transform: scale(0.5)}
+  to {-webkit-transform: scale(1)}
+}
+@-webkit-keyframes ani-ability-canvasphp
+{
+  from {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  to {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasphp2
+{
+  from {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  to {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasmysql
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  30% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasmysql2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  30% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvashtml
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  40% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvashtml2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  40% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasjs
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  50% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasjs2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  50% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasmvc
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  60% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasmvc2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  60% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvaslinux
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  70% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvaslinux2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  70% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasds
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  70% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvasds2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  70% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvascpp
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  80% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+@-webkit-keyframes ani-ability-canvascpp2
+{
+  0% {-webkit-transform: scaleX(0);-webkit-transform-origin:0% 0%;}
+  80% {-webkit-transform: scaleX(0); -webkit-transform-origin:0% 0%;}
+  100% {-webkit-transform: scaleX(1); -webkit-transform-origin:0% 0%;}
+}
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/css/style/" data-id="ciujp1qn30006rcu75al699hw" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-mresume-master/index" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/21/mresume-master/index/" class="article-date">
+  <time datetime="2016-10-21T11:28:02.841Z" itemprop="datePublished">2016-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <!doctype>
+
+<html>
+  <head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <meta name="apple-touch-fullscreen" content="YES">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link type="text/css" href="css/style.css" rel="stylesheet">
+
+  </head>
+  <body>
+    <div id="warp">
+      <ul id="outer">
+        <li class="cover">
+          <img id="cover-img" src="imgs/jun.jpg">
+          <div>
+            <p id="cover-title">前端工程师</p>
+            <p id="cover-subtitle">王钧民的个人简历</p>
+          </div>
+        </li>
+
+        <li id="aboutme" class="page">
+          <div id="aboutme-title" class="page-title">
+            <h2 id="aboutme-title-cn" class="CN">关于我</h2>
+            <h2 id="aboutme-title-en" class="EN">About Me</h2>
+          </div>
+          <div id="aboutme-detail" class="page-detail">
+            <p class="page-detail-head">
+              <span>王钧民</span>
+              <span>&nbspIT | 程序员  </span>
+            </p>
+            <table>
+              <tbody>
+                <tr>
+                  <td><span>工作状态</span></td>
+                  <td>离职 | 北京时代科技有限公司</td>
+                </tr>
+                <tr>
+                  <td><span>现居地</span></td>
+                  <td>北京市</td>
+                </tr>
+                <tr>
+                  <td><span>兴趣爱好</span></td>
+                  <td>篮球、羽毛球、骑行、摄影</td>
+                </tr>
+                <tr>
+                  <td><span>业余技能</span></td>
+                  <td>摄影、PS</td>
+                </tr>
+                <tr>
+                  <td><span>工作期望</span></td>
+                  <td>希望与大神一起工作，一起探索技术前沿</td>
+                </tr>
+                <tr><td></td></tr>
+                <tr>
+                  <td><span>电子邮箱</span></td>
+                  <td>861442325@qq.com</td>
+                </tr>
+                <tr>
+                  <td><span>联系电话</span></td>
+                  <td>15518827229</td>
+                </tr>
+                <tr>
+                  <td><span>个人博客</span></td>
+                  <td>861442325@qq.com</td>
+                </tr>
+                <tr>
+                  <td><span>Github</span></td>
+                  <td>wjm666</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>  
+        </li>
+
+        <li id="education" class="page">
+          <div id="education-title" class="page-title">
+            <h2 id="education-title-cn" class="CN">求职意向</h2>
+            <h2 id="education-title-en" class="EN">Intention</h2>
+          </div>
+          <div id="education-detail" class="page-detail">
+            <div>
+              <div id="education-img1" class="one-third">
+                <img src="imgs/highschool.png">
+              </div>
+              <div id="education-img2" class="one-third">
+                <img src="imgs/university.png">
+              </div>
+              <div id="education-img3" class="one-third">
+                <img src="imgs/graduate.png">
+              </div>
+            </div>
+            <div>
+              <div id="education-text1" class="one-third text">
+                <div class="text-title">
+                  工作性质：     全职
+                  <br>求职意向：    前端工程师
+                </div>
+              </div>
+              <div id="education-text2" class="one-third text">              
+                <div class="text-title">
+                  期望月薪：    8000-10000
+                  <br>工作年限：    1年以上
+                </div>
+              </div>
+              <div id="education-text3" class="one-third text">
+                <div class="text-title">
+                  目前状况：    我目前处于离职状态，可立即到岗
+                  <br>期望工作地点：北京
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li id="ability" class="page">
+          <div id="ability-title" class="page-title">
+            <h2 id="ability-title-cn" class="CN">专业技能</h2>
+            <h2 id="ability-title-en" class="EN">Ability</h2>
+          </div>
+          <div id="ability-detail" class="page-detail">
+            <table>
+              <tr>
+                <td id="canvas-td">PHP</td>
+                <td><canvas id="canvas-php" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>MySQL</td>
+                <td><canvas id="canvas-mysql" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>HTML/CSS</td>
+                <td><canvas id="canvas-html" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>JS/JQuery</td>
+                <td><canvas id="canvas-js" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>bootstrap框架</td>
+                <td><canvas id="canvas-mvc" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>Linux</td>
+                <td><canvas id="canvas-linux" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>数据结构/算法</td>
+                <td><canvas id="canvas-ds" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+              <tr>
+                <td>C/C++</td>
+                <td><canvas id="canvas-cpp" class="canvas-ability" height="50"></canvas></td>
+              </tr>
+            </table>
+          </div>
+        </li>
+        <li id="experience" class="page">
+          <div id="experience-title" class="page-title">
+            <h2 id="experience-title-cn" class="CN">项目经验</h2>
+            <h2 id="experience-title-en" class="EN">Experience</h2>
+          </div>
+          <div id="experience-detail" class="page-detail">
+            <div class="project">
+              <div class="project-title">
+                项目一：幔安顿电商平台
+              </div>
+              <div class="project-detail">
+                <div>
+                  软件架构： JetBrains WebStorm 10.0.3 HTML5布局 +  jQuery v1.7.2 + 原生JS
+                  <br>主用：less sublime
+                  <br>开发周期： 2015.7-2015.11
+                </div>
+                <div>
+                  项目描述：
+                  <br>该电商平台为PC端项目，为了借助电子商务的全新手段获得全球竞争优势，节省客户与企业的时间和空间，提高交易效率为忙碌的上班族节省宝贵时间，通过足不出户的网络渠道，了解本公司产品信息，为公司销售业绩提升一个台阶,
+                  <br>1、后台管理系统：管理商品、订单、类目、商品规格属性、用户管理以及内容发布等功能；
+                  <br>2、会员系统：用户可以在该系统中查询已下的订单、收藏的商品、我的优惠卷、团购等信息；
+                  <br>3、订单系统：提供下单、查询订单、修改订单状态、定时处理订单；
+                  <br>4、搜索系统：提供商品的搜索功能；
+                  <br>5、单点登录系统：为多个系统之间提供用户登录凭证一级查询登陆用户的信息；
+                </div>
+                <div>
+                  责任描述：
+                  <br>1.使用h5、css3搭建页面结构，使用less编译样式；
+                  <br>2.采用前端开发中整个框架的搭建；
+                  <br>3.网站性能的优化与兼容处理，基本都是ie的兼容；
+                  <br>4.采用Ajax技术与后台进行数据交互，并用模板引擎进行页面渲染；
+                  <br>5.代码的整合、优化、压缩与合并；
+                </div>
+              </div>
+
+              <div class="project-title">
+                项目二：爱途旅游网（手机端）
+              </div>
+              <div class="project-detail">
+                <div>
+                  项目描述：
+                  <br>近年来，国人的生活品质提升，渐渐注重休闲生活，旅游变成了热门话题，由于网络方便，快捷的特性，成为我们寻求旅游信息的最佳利器，由于上网订购机票及参加旅游团的的费用低廉，所以受到旅游人士的欢迎，针对旅游的特色，量身定制面向广大游客，内容丰富，功能强大的网站，让浏览者更方便更透彻的了解本地旅游景点，吸引更多的旅游者；
+                  <br>1、会员模块： 实现的主要功能包括新用户注册、老用户登录，同时，管理员对用户进行管理；
+                  <br>2、信息检索模块：该模块主要是方便用户对本站景点和酒店进行相关检索，并返回检索结果。用户可以根据自己不同的需求，系统根据用户选择的不同组合检索方式和输入的关键字进行相关检索，得到检索的信息；
+                  <br>3、在线留言模块：方便用户和管理人员沟通，用户可以发表自己的看法也可以浏览其他用户的留言；
+                  <br>4、信息浏览模块：实现的主要功能包括查看站内公告（最新公告及近期的所有公共）；
+                </div>
+                <div>
+                  责任描述：
+                  <br>1. 使用rem以及媒体查询实现移动端页面布局，让不同的移动设备都能访问到同效果页面；
+                  <br>2. 采用CSS3技术实现制作强交互、多动画效果页面；
+                  <br>3. 完成登录页，注册页，密码找回页面的用户提议以及与后台数据的交换；
+                  <br>4. 通过CSS3动画 + Javascript + 手势，增强页面和用户间的互动；
+                  <br>5. 面对手机端品牌复杂，浏览器种类繁多的现状，处理了非常棘手的手机端浏览器兼容性问题；
+                  <br>5. 同时参与前期项目分析，以及后期代码优化压缩工作。
+                </div>
+              </div>
+
+              <div class="project-title">
+                其它web项目：
+              </div>
+              <div class="project-detail">
+                <div>
+                  1.众泰p2p信贷平台
+                  <br>2.杭州天尔科技
+                  <br>3.淘淘电商
+                </div>
+            </div>
+          </div>
+        </div></li>
+      </ul>
+    </div>
+
+    <script type="text/javascript" src="js/mresume.js"></script>
+
+  </body>
+</html>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/index/" data-id="ciujp1qme0005rcu7y2uxfp7c" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-resume" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/21/resume/" class="article-date">
+  <time datetime="2016-10-21T11:24:41.000Z" itemprop="datePublished">2016-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/10/21/resume/">resume</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/10/21/resume/" data-id="ciujp1qlj0001rcu7dsl9ct8m" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-杜哥" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/10/15/杜哥/" class="article-date">
@@ -87,7 +1180,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/15/杜哥/" data-id="ciub8l41i0003jku7zwql58v5" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2016/10/15/杜哥/" data-id="ciujp1qlq0004rcu7bol8r1mt" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -123,7 +1216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/15/hello/" data-id="ciub8l4170002jku763nwtjww" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2016/10/15/hello/" data-id="ciujp1qlf0000rcu7et87d7na" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -159,7 +1252,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/08/wjm自己的博客/" data-id="ciub8l4150001jku7yhc600iv" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2016/10/08/wjm自己的博客/" data-id="ciujp1qlp0003rcu7ha451ovq" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -204,7 +1297,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/08/hello-world/" data-id="ciub8l4100000jku73q6znp1h" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2016/10/08/hello-world/" data-id="ciujp1qln0002rcu7ekeej87m" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -244,19 +1337,23 @@
       <ul>
         
           <li>
+            <a href="/2016/10/21/mresume-master/js/mresume/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2016/10/21/mresume-master/css/style/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2016/10/21/mresume-master/index/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2016/10/21/resume/">resume</a>
+          </li>
+        
+          <li>
             <a href="/2016/10/15/杜哥/">杜哥</a>
-          </li>
-        
-          <li>
-            <a href="/2016/10/15/hello/">hello</a>
-          </li>
-        
-          <li>
-            <a href="/2016/10/08/wjm自己的博客/">wjm自己的博客</a>
-          </li>
-        
-          <li>
-            <a href="/2016/10/08/hello-world/">Hello World</a>
           </li>
         
       </ul>
