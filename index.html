@@ -61,6 +61,89 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-node-js" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/21/node-js/" class="article-date">
+  <time datetime="2016-10-21T11:37:57.000Z" itemprop="datePublished">2016-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/10/21/node-js/">node.js</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="1-0-nvm常用命令"><a href="#1-0-nvm常用命令" class="headerlink" title="1.0 nvm常用命令"></a>1.0 nvm常用命令</h2><ul>
+<li>nvm项目地址：<a href="https://github.com/coreybutler/nvm-windows" target="_blank" rel="external">nvm-github地址</a></li>
+<li>查看所有已安装的本地的node版本<br><code>nvm list</code></li>
+<li>切换node版本<br><code>nvm use 版本号</code></li>
+<li>安装指定版本的node<br><code>nvm install 版本号 位数</code></li>
+<li>卸载已安装的指定版本的node<br><code>nvm uninstall 版本号</code></li>
+</ul>
+<p>###1.1模块的分类</p>
+<figure class="highlight plain"><figcaption><span>```</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">- 核心模块</div><div class="line">  + fs file system</div><div class="line">  + http</div><div class="line">  + os</div><div class="line">  + path</div><div class="line">  + querystring</div><div class="line">  + url</div><div class="line"></div><div class="line">###1.2模块三兄弟 require、module、exports</div><div class="line"></div><div class="line">- require的实现原理</div><div class="line"></div><div class="line">```把代码从文件中读出来，用匿名函数的方式头尾包装，返回modules.exports对象，曝露出想要曝露出来的属性、方法、对象。</div><div class="line">   补充了exports是指向modules.exports的一个指针，exports能做的，modules.exports都能做的。</div></pre></td></tr></table></figure>
+<ul>
+<li>require查找文件、包原理</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">第二次加载的时候优先从缓存查找读取，</div><div class="line">node_modules中没有的，从父文件夹中查找，如果没有，直到根目录为止</div></pre></td></tr></table></figure>
+<ul>
+<li><p>module</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">里面保存了模块的信息路径、父子信息、曝露出的对象信息</div></pre></td></tr></table></figure>
+</li>
+<li><p>exports</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">module.exports 别名</div><div class="line">module.exports=123;已经使用过一次了，exports就不生效了</div><div class="line">module.exports.a=12;这样使用,exports是还可以使用的</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>###1.4包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">package.json是包的说明书，</div><div class="line">dependencies当前包所依赖的包：&gt;、&lt;、&gt;=、&lt;=、~、*、&quot; &quot;、X、^</div><div class="line"> devDependencies 开发环境中包所依赖的包：</div></pre></td></tr></table></figure></p>
+<p>###1.5npm<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">npm init  创建package.json文件</div><div class="line">npm install  将package.json中的文件依赖的包从网上下载到本地</div><div class="line">npm install -save 包名  将包下载下来并且加载到dependencies中去</div><div class="line">npm i -S 包名 替代上面的命令</div><div class="line">npm install -save-dev 包名 将包下载下来并且加载到devDependencies中去</div><div class="line">npm i -D 包名 替代上面的命令</div><div class="line">npm install -g 包名 全局安装  安装的是全局工具</div><div class="line">npm docs 包名 查看包的文档</div></pre></td></tr></table></figure></p>
+<p>###1.6nrm npm的数据源管理工具<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">nrm ls 查看npm的数据源</div><div class="line">nrm use 切换npm下载包的地址</div><div class="line">nrm test  测试下哪个数据源快</div></pre></td></tr></table></figure></p>
+<h3 id="1-7-3m"><a href="#1-7-3m" class="headerlink" title="1.7 3m"></a>1.7 3m</h3><p>npm node的包管理工具<br>nvm node的版本管理工具<br>nrm npm的数据源管理工具</p>
+<p>###1.8箭头函数<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">语法糖替代function()&#123;&#125;  v=&gt;v</div></pre></td></tr></table></figure></p>
+<p>#2.i/o</p>
+<p>###2.1什么是i/o？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">io input、output 输入输出，电脑的输入输出，例如音频录音表示声音输入、听音乐是声音的输出</div><div class="line">网络上的传输全部是在传字符串，i/o在服务器上可以理解为读写操作。</div></pre></td></tr></table></figure>
+<p>###2.2什么是并发？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">一个时间段中有几个程序都处于已启动运行到运行完毕之间。</div></pre></td></tr></table></figure></p>
+<p>#3异步i/o与事件驱动</p>
+<p>###3.1什么是进程？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进程是为运行当中的应用程序提供运行环境的</div><div class="line">一个运行当中的应用程序就会有一个进程与之相对应</div></pre></td></tr></table></figure></p>
+<p>###3.2什么是线程？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">线程是用来运行应用程序中代码的，</div><div class="line">一个线程在一个时间只能做一件事件。</div><div class="line">多线程，调度起来很麻烦。</div><div class="line">node是单线程执行，用异步替代了多线程</div></pre></td></tr></table></figure></p>
+<p>###3.3同步、异步有什么不同？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">异步不会阻塞后面的代码，同步会阻塞后面的代码</div><div class="line">一条线程先执行同步的代码后执行异步的代码。</div></pre></td></tr></table></figure></p>
+<p>###3.4异步非i/o操作和异步i/o操作<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">异步非io setTimeout setInterval</div><div class="line">异步IO操作 操作文件 网络操作 fs</div></pre></td></tr></table></figure></p>
+<p>###3.5node的事件驱动模型？<br><img src="./pic/event-loop.png" alt="Alt text"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>###3.5异步和多线程的比较？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">node的异步是帮助我们去做了多线程的操作，简化了代码</div></pre></td></tr></table></figure></p>
+<p>#4.文件操作</p>
+<p>###4.1文件的完整读写<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">fs模块---》操作文件---》io----》node的特长</div><div class="line">fs模块是node非常重要的模块，能体现出node的优势</div></pre></td></tr></table></figure></p>
+<ul>
+<li>fs.writeFile()  写文件</li>
+<li>fs.appendFile() 在文件的内部去追加写一些内容</li>
+<li>fs.mkdir() 创建文件夹</li>
+<li>fs.access() 判断路径</li>
+<li>fs.stat()<br>isFile：用于判断被查看的对象是否为一个文件，如果是返回true，否则，返回false；<br>isDirectory：用于判断被查看的对象是否为一个目录，如果是的话则返回true，否则，返回false；<br>isBlockDevice：用于判断被查看的文件是否为一个块设备文件，如果是的话则返回true，否则，返回false(仅在Unix操作系统下有效)；<br>isCharacterDevice：用于判断被查看的文件是否为一个字符设备文件，如果是的话则返回true，否则，返回false(仅在Unix操作系统下有效)；<br>isSymbolicLink：用于判断被查看的文件是否为一个符号链接文件，如果是的话则返回true，否则，返回false。该方法仅在lstat方法的回调函数中有效；<br>isFIFO：用于判断被查看的文件是否为一个FIFO，如果是的话则返回true，否则，返回false(仅在Unix操作系统下有效)；<br>isSocket：用于判断被查看的文件是否为一个socket文件，如果是的话则返回true，否则，返回false(仅在Unix操作系统下有效)；</li>
+<li>fs.readdir() 读一个路径</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/10/21/node-js/" data-id="ciujpfve50002eou7y8qtx8e8" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-mresume-master/js/mresume" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/10/21/mresume-master/js/mresume/" class="article-date">
@@ -426,7 +509,7 @@ AddAnimation(0);
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/21/mresume-master/js/mresume/" data-id="ciujp1qn40007rcu70gsbzyze" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/js/mresume/" data-id="ciujpfvf10007eou7y55l5ytf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -846,7 +929,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/21/mresume-master/css/style/" data-id="ciujp1qn30006rcu75al699hw" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/css/style/" data-id="ciujpfvf00006eou7lb25f4jf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1108,43 +1191,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/21/mresume-master/index/" data-id="ciujp1qme0005rcu7y2uxfp7c" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-resume" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/10/21/resume/" class="article-date">
-  <time datetime="2016-10-21T11:24:41.000Z" itemprop="datePublished">2016-10-21</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/10/21/resume/">resume</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/21/resume/" data-id="ciujp1qlj0001rcu7dsl9ct8m" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/21/mresume-master/index/" data-id="ciujpfvew0005eou7j9en7426" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1180,7 +1227,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/15/杜哥/" data-id="ciujp1qlq0004rcu7bol8r1mt" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/15/杜哥/" data-id="ciujpfve90004eou7omtx00gb" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1216,7 +1263,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/15/hello/" data-id="ciujp1qlf0000rcu7et87d7na" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/15/hello/" data-id="ciujpfve20001eou7c6v87e3n" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1252,7 +1299,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/08/wjm自己的博客/" data-id="ciujp1qlp0003rcu7ha451ovq" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/08/wjm自己的博客/" data-id="ciujpfve80003eou7vha60nwc" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1297,7 +1344,7 @@ li{
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/10/08/hello-world/" data-id="ciujp1qln0002rcu7ekeej87m" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/10/08/hello-world/" data-id="ciujpfvdx0000eou7r4myjqm9" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1337,6 +1384,10 @@ li{
       <ul>
         
           <li>
+            <a href="/2016/10/21/node-js/">node.js</a>
+          </li>
+        
+          <li>
             <a href="/2016/10/21/mresume-master/js/mresume/">(no title)</a>
           </li>
         
@@ -1346,10 +1397,6 @@ li{
         
           <li>
             <a href="/2016/10/21/mresume-master/index/">(no title)</a>
-          </li>
-        
-          <li>
-            <a href="/2016/10/21/resume/">resume</a>
           </li>
         
           <li>
